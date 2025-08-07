@@ -23,20 +23,8 @@ CREATE TABLE circle_rates (
   UNIQUE(state, district)
 );
 
-CREATE TABLE document_generations (
-  id BIGSERIAL PRIMARY KEY,
-  template_id BIGINT REFERENCES templates(id),
-  user_id VARCHAR(255) NOT NULL,
-  extracted_data JSONB,
-  final_document TEXT,
-  status VARCHAR(50) DEFAULT 'draft',
-  created_at TIMESTAMP DEFAULT NOW(),
-  updated_at TIMESTAMP DEFAULT NOW()
-);
-
 CREATE INDEX idx_templates_type ON templates(type);
 CREATE INDEX idx_circle_rates_location ON circle_rates(state, district);
-CREATE INDEX idx_document_generations_user ON document_generations(user_id);
 
 -- Insert sample templates
 INSERT INTO templates (name, type, content, placeholders, created_by) VALUES

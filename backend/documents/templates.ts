@@ -2,9 +2,7 @@ import { api } from "encore.dev/api";
 import { getAuthData } from "~encore/auth";
 import { SQLDatabase } from "encore.dev/storage/sqldb";
 
-const db = new SQLDatabase("documents_db", {
-  migrations: "./migrations",
-});
+const db = SQLDatabase.named("advocate_ai");
 
 export interface Template {
   id: number;

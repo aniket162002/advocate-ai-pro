@@ -18,7 +18,7 @@ export interface JudgeAnalysis {
 
 // Analyzes judge's historical patterns and suggests arguments.
 export const analyzeJudge = api<AnalyzeJudgeRequest, JudgeAnalysis>(
-  { auth: true, expose: true, method: "POST", path: "/arguments/analyze-judge" },
+  { auth: true, expose: true, method: "POST", path: "/argument-analysis/analyze-judge" },
   async (req) => {
     try {
       const auth = getAuthData()!;

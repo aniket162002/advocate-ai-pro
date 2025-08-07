@@ -2,7 +2,7 @@ import { api } from "encore.dev/api";
 import { getAuthData } from "~encore/auth";
 import { SQLDatabase } from "encore.dev/storage/sqldb";
 
-const db = SQLDatabase.named("documents_db");
+const db = SQLDatabase.named("advocate_ai");
 
 export interface MalkiyatCalculationRequest {
   landArea: number;

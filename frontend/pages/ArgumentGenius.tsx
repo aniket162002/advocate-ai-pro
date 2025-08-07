@@ -33,7 +33,7 @@ export default function ArgumentGenius() {
 
     setLoading(true);
     try {
-      const response = await backend.arguments.analyzeJudge({
+      const response = await backend.argument_analysis.analyzeJudge({
         judgeId,
         caseType,
       });
@@ -67,7 +67,7 @@ export default function ArgumentGenius() {
 
     setLoading(true);
     try {
-      const response = await backend.arguments.simulateArgument({
+      const response = await backend.argument_analysis.simulateArgument({
         argument,
         caseType,
         judgeProfile,
