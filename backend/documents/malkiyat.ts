@@ -2,7 +2,7 @@ import { api } from "encore.dev/api";
 import { getAuthData } from "~encore/auth";
 import { SQLDatabase } from "encore.dev/storage/sqldb";
 
-const db = SQLDatabase.named("advocate_ai");
+const db = SQLDatabase.named("documents_db");
 
 export interface MalkiyatCalculationRequest {
   landArea: number;
@@ -23,33 +23,41 @@ export interface MalkiyatCalculationResponse {
 export const calculateMalkiyat = api<MalkiyatCalculationRequest, MalkiyatCalculationResponse>(
   { auth: true, expose: true, method: "POST", path: "/documents/malkiyat" },
   async (req) => {
-    const auth = getAuthData()!;
-    
-    if (auth.role !== "lawyer" && auth.role !== "admin") {
-      throw new Error("Only lawyers and admins can calculate malkiyat");
+    try {
+      const auth = getAuthData()!;
+      
+      if (auth.role !== "lawyer" && auth.role !== "admin") {
+        throw new Error("Only lawyers and admins can calculate malkiyat");
+      }
+
+      if (req.landArea <= 0) {
+        throw new Error("Land area must be greater than 0");
+      }
+
+      let circleRate = req.circleRate;
+      
+      if (!circleRate) {
+        const rateData = await db.queryRow`
+          SELECT circle_rate FROM circle_rates 
+          WHERE state = ${req.state} AND district = ${req.district}
+        `;
+        circleRate = rateData?.circle_rate || 50000; // Default rate
+      }
+
+      const landValue = req.landArea * circleRate;
+      const stampDuty = landValue * 0.05; // 5% stamp duty
+      const registrationFee = landValue * 0.01; // 1% registration fee
+      const totalCharges = landValue + stampDuty + registrationFee;
+
+      return {
+        landValue,
+        stampDuty,
+        registrationFee,
+        totalCharges,
+        circleRate,
+      };
+    } catch (error) {
+      throw new Error(error instanceof Error ? error.message : "Failed to calculate malkiyat");
     }
-
-    let circleRate = req.circleRate;
-    
-    if (!circleRate) {
-      const rateData = await db.queryRow`
-        SELECT circle_rate FROM circle_rates 
-        WHERE state = ${req.state} AND district = ${req.district}
-      `;
-      circleRate = rateData?.circle_rate || 50000; // Default rate
-    }
-
-    const landValue = req.landArea * circleRate;
-    const stampDuty = landValue * 0.05; // 5% stamp duty
-    const registrationFee = landValue * 0.01; // 1% registration fee
-    const totalCharges = landValue + stampDuty + registrationFee;
-
-    return {
-      landValue,
-      stampDuty,
-      registrationFee,
-      totalCharges,
-      circleRate,
-    };
   }
 );

@@ -1,8 +1,5 @@
 import { api } from "encore.dev/api";
 import { getAuthData } from "~encore/auth";
-import { secret } from "encore.dev/config";
-
-const openAIKey = secret("OpenAIKey");
 
 export interface CreateDraftRequest {
   caseId: string;
@@ -25,19 +22,29 @@ export interface Draft {
 export const createDraft = api<CreateDraftRequest, Draft>(
   { auth: true, expose: true, method: "POST", path: "/ecourt/drafts" },
   async (req) => {
-    const auth = getAuthData()!;
-    
-    if (auth.role !== "lawyer") {
-      throw new Error("Only lawyers can create drafts");
-    }
+    try {
+      const auth = getAuthData()!;
+      
+      if (auth.role !== "lawyer") {
+        throw new Error("Only lawyers can create drafts");
+      }
 
-    // Simulate AI draft generation
-    const content = `
-BEFORE THE HON'BLE COURT
+      if (!req.caseId || !req.draftType) {
+        throw new Error("Case ID and draft type are required");
+      }
+
+      // Simulate AI draft generation based on type
+      let content = "";
+      let complianceIssues: string[] = [];
+      let suggestions: string[] = [];
+
+      switch (req.draftType) {
+        case "application":
+          content = `BEFORE THE HON'BLE COURT
 
 IN THE MATTER OF: ${req.caseId}
 
-DRAFT APPLICATION
+APPLICATION UNDER SECTION ___
 
 TO,
 THE HON'BLE COURT
@@ -60,27 +67,61 @@ b) Pass any other order as deemed fit
 Place: [City]
 Date: ${new Date().toLocaleDateString()}
 
-                                                    Advocate for Applicant
-    `;
+                                                    Advocate for Applicant`;
+          break;
+        case "petition":
+          content = `PETITION UNDER ARTICLE ___ OF THE CONSTITUTION
 
-    const complianceIssues = [
-      "Missing case citation in paragraph 2",
-      "Prayer section needs specific relief details",
-    ];
+TO,
+THE HON'BLE COURT
 
-    const suggestions = [
-      "Add relevant case law citations",
-      "Include specific dates and amounts",
-      "Verify court formatting requirements",
-    ];
+The humble petition of the petitioner above named
 
-    return {
-      id: `draft_${Date.now()}`,
-      caseId: req.caseId,
-      content,
-      complianceIssues,
-      suggestions,
-      createdAt: new Date(),
-    };
+MOST RESPECTFULLY SHOWETH:
+
+1. That the petitioner is filing this petition in public interest.
+
+2. ${req.manualInput || req.voiceInput || "Petition details to be filled"}
+
+PRAYER:
+It is therefore most respectfully prayed that this Hon'ble Court may be pleased to:
+a) Issue appropriate writ/order/direction
+b) Grant such other relief as deemed fit
+
+                                                    Petitioner`;
+          break;
+        default:
+          content = `LEGAL DOCUMENT
+
+${req.manualInput || req.voiceInput || "Content to be filled"}
+
+Date: ${new Date().toLocaleDateString()}
+                                                    Advocate`;
+      }
+
+      complianceIssues = [
+        "Missing specific section references",
+        "Prayer section needs more detail",
+        "Verification clause missing",
+      ];
+
+      suggestions = [
+        "Add relevant case law citations",
+        "Include specific dates and amounts",
+        "Verify court formatting requirements",
+        "Add proper cause title",
+      ];
+
+      return {
+        id: `draft_${Date.now()}`,
+        caseId: req.caseId,
+        content,
+        complianceIssues,
+        suggestions,
+        createdAt: new Date(),
+      };
+    } catch (error) {
+      throw new Error(error instanceof Error ? error.message : "Failed to create draft");
+    }
   }
 );

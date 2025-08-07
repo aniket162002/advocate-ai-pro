@@ -1,6 +1,5 @@
 import React from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import { useUser } from '@clerk/clerk-react';
 import { 
   Scale, 
   FileText, 
@@ -8,11 +7,11 @@ import {
   Brain, 
   TrendingUp, 
   Settings, 
-  Users,
   BarChart3,
   MessageSquare
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { useAuth } from '../../contexts/AuthContext';
 
 const navigation = [
   { name: 'Dashboard', href: '/lawyer', icon: BarChart3, roles: ['lawyer', 'user'] },
@@ -26,8 +25,8 @@ const navigation = [
 
 export default function Sidebar() {
   const location = useLocation();
-  const { user } = useUser();
-  const userRole = user?.publicMetadata?.role as string || 'user';
+  const { user } = useAuth();
+  const userRole = user?.role || 'user';
 
   const filteredNavigation = navigation.filter(item => 
     item.roles.includes(userRole)

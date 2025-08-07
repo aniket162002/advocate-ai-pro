@@ -1,16 +1,13 @@
-import { useAuth } from "@clerk/clerk-react";
+import { useAuth } from '../contexts/AuthContext';
 import backend from "~backend/client";
 
 // Returns the backend client with authentication.
 export function useBackend() {
-  const { getToken, isSignedIn } = useAuth();
+  const { token } = useAuth();
   
-  if (!isSignedIn) return backend;
+  if (!token) return backend;
   
   return backend.with({
-    auth: async () => {
-      const token = await getToken();
-      return token ? { authorization: `Bearer ${token}` } : {};
-    }
+    auth: () => ({ authorization: `Bearer ${token}` })
   });
 }

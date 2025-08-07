@@ -16,13 +16,24 @@ export default function ArgumentGenius() {
   const [judgeProfile, setJudgeProfile] = useState('');
   const [analysis, setAnalysis] = useState<any>(null);
   const [simulatorResult, setSimulatorResult] = useState<any>(null);
+  const [loading, setLoading] = useState(false);
   
   const backend = useBackend();
   const { toast } = useToast();
 
   const analyzeJudge = async () => {
+    if (!judgeId || !caseType) {
+      toast({
+        title: "Missing Information",
+        description: "Please enter judge ID and select case type",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    setLoading(true);
     try {
-      const response = await backend.argumentGenius.analyzeJudge({
+      const response = await backend.arguments.analyzeJudge({
         judgeId,
         caseType,
       });
@@ -36,15 +47,27 @@ export default function ArgumentGenius() {
       console.error('Analysis Error:', error);
       toast({
         title: "Error",
-        description: "Failed to analyze judge patterns",
+        description: error instanceof Error ? error.message : "Failed to analyze judge patterns",
         variant: "destructive",
       });
+    } finally {
+      setLoading(false);
     }
   };
 
   const simulateArgument = async () => {
+    if (!argument || !caseType || !judgeProfile) {
+      toast({
+        title: "Missing Information",
+        description: "Please fill in all required fields",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    setLoading(true);
     try {
-      const response = await backend.argumentGenius.simulateArgument({
+      const response = await backend.arguments.simulateArgument({
         argument,
         caseType,
         judgeProfile,
@@ -59,9 +82,11 @@ export default function ArgumentGenius() {
       console.error('Simulation Error:', error);
       toast({
         title: "Error",
-        description: "Failed to simulate argument",
+        description: error instanceof Error ? error.message : "Failed to simulate argument",
         variant: "destructive",
       });
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -108,9 +133,9 @@ export default function ArgumentGenius() {
               </Select>
             </div>
 
-            <Button onClick={analyzeJudge} className="w-full">
+            <Button onClick={analyzeJudge} className="w-full" disabled={loading}>
               <Brain className="h-4 w-4 mr-2" />
-              Analyze Judge Patterns
+              {loading ? "Analyzing..." : "Analyze Judge Patterns"}
             </Button>
 
             {analysis && (
@@ -175,9 +200,9 @@ export default function ArgumentGenius() {
               />
             </div>
 
-            <Button onClick={simulateArgument} className="w-full">
+            <Button onClick={simulateArgument} className="w-full" disabled={loading}>
               <Play className="h-4 w-4 mr-2" />
-              Simulate Argument
+              {loading ? "Simulating..." : "Simulate Argument"}
             </Button>
 
             {simulatorResult && (

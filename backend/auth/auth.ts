@@ -1,10 +1,10 @@
-import { createClerkClient, verifyToken } from "@clerk/backend";
 import { Header, Cookie, APIError, Gateway } from "encore.dev/api";
 import { authHandler } from "encore.dev/auth";
-import { secret } from "encore.dev/config";
+import { SQLDatabase } from "encore.dev/storage/sqldb";
 
-const clerkSecretKey = secret("ClerkSecretKey");
-const clerkClient = createClerkClient({ secretKey: clerkSecretKey() });
+const db = new SQLDatabase("advocate_ai", {
+  migrations: "./migrations",
+});
 
 interface AuthParams {
   authorization?: Header<"Authorization">;
@@ -13,15 +13,12 @@ interface AuthParams {
 
 export interface AuthData {
   userID: string;
-  imageUrl: string;
-  email: string | null;
+  email: string;
   role: "admin" | "lawyer" | "user";
   crnNumber?: string;
+  firstName: string;
+  lastName: string;
 }
-
-const AUTHORIZED_PARTIES = [
-  "https://*.lp.dev",
-];
 
 const auth = authHandler<AuthParams, AuthData>(
   async (data) => {
@@ -31,22 +28,28 @@ const auth = authHandler<AuthParams, AuthData>(
     }
 
     try {
-      const verifiedToken = await clerkClient.verifyToken(token, {
-        authorizedParties: AUTHORIZED_PARTIES,
-        secretKey: clerkSecretKey(),
-      });
-
-      const user = await clerkClient.users.getUser(verifiedToken.sub);
+      // Simple JWT-like token verification (in production, use proper JWT)
+      const decoded = Buffer.from(token, 'base64').toString('utf-8');
+      const userData = JSON.parse(decoded);
       
-      const role = user.publicMetadata?.role as string || "user";
-      const crnNumber = user.publicMetadata?.crnNumber as string;
+      // Verify user exists in database
+      const user = await db.queryRow`
+        SELECT id, email, role, crn_number, first_name, last_name
+        FROM users 
+        WHERE id = ${userData.userID} AND is_active = TRUE
+      `;
+      
+      if (!user) {
+        throw APIError.unauthenticated("invalid token");
+      }
       
       return {
-        userID: user.id,
-        imageUrl: user.imageUrl,
-        email: user.emailAddresses[0]?.emailAddress ?? null,
-        role: role as "admin" | "lawyer" | "user",
-        crnNumber,
+        userID: user.id.toString(),
+        email: user.email,
+        role: user.role as "admin" | "lawyer" | "user",
+        crnNumber: user.crn_number,
+        firstName: user.first_name,
+        lastName: user.last_name,
       };
     } catch (err) {
       throw APIError.unauthenticated("invalid token", err);

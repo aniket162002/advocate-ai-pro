@@ -1,12 +1,16 @@
 import React from 'react';
-import { UserButton, useUser } from '@clerk/clerk-react';
-import { Bell, Search } from 'lucide-react';
+import { Bell, Search, LogOut } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { Avatar, AvatarFallback } from '@/components/ui/avatar';
+import { useAuth } from '../../contexts/AuthContext';
 
 export default function Header() {
-  const { user } = useUser();
-  const userRole = user?.publicMetadata?.role as string || 'user';
+  const { user, logout } = useAuth();
+
+  const getInitials = (firstName: string, lastName: string) => {
+    return `${firstName.charAt(0)}${lastName.charAt(0)}`.toUpperCase();
+  };
 
   return (
     <header className="bg-white shadow-sm border-b border-gray-200">
@@ -31,15 +35,16 @@ export default function Header() {
               <p className="text-sm font-medium text-gray-900">
                 {user?.firstName} {user?.lastName}
               </p>
-              <p className="text-xs text-gray-500 capitalize">{userRole}</p>
+              <p className="text-xs text-gray-500 capitalize">{user?.role}</p>
             </div>
-            <UserButton 
-              appearance={{
-                elements: {
-                  avatarBox: 'h-8 w-8'
-                }
-              }}
-            />
+            <Avatar className="h-8 w-8">
+              <AvatarFallback>
+                {user ? getInitials(user.firstName, user.lastName) : 'U'}
+              </AvatarFallback>
+            </Avatar>
+            <Button variant="ghost" size="sm" onClick={logout}>
+              <LogOut className="h-4 w-4" />
+            </Button>
           </div>
         </div>
       </div>

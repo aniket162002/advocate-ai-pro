@@ -1,5 +1,4 @@
 import React from 'react';
-import { useUser } from '@clerk/clerk-react';
 import Sidebar from './Sidebar';
 import Header from './Header';
 
@@ -8,8 +7,6 @@ interface DashboardLayoutProps {
 }
 
 export default function DashboardLayout({ children }: DashboardLayoutProps) {
-  const { user } = useUser();
-  
   return (
     <div className="min-h-screen bg-gray-50">
       <div className="flex">

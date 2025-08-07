@@ -1,10 +1,5 @@
 import { api } from "encore.dev/api";
 import { getAuthData } from "~encore/auth";
-import { secret } from "encore.dev/config";
-
-const twilioSid = secret("TwilioSID");
-const twilioToken = secret("TwilioToken");
-const whatsappApiKey = secret("WhatsAppAPIKey");
 
 export interface SendNotificationRequest {
   recipientId: string;
@@ -22,35 +17,50 @@ export interface NotificationResponse {
 export const sendNotification = api<SendNotificationRequest, NotificationResponse>(
   { auth: true, expose: true, method: "POST", path: "/notifications/send" },
   async (req) => {
-    const auth = getAuthData()!;
-    
-    if (auth.role !== "lawyer" && auth.role !== "admin") {
-      throw new Error("Only lawyers and admins can send notifications");
-    }
+    try {
+      const auth = getAuthData()!;
+      
+      if (auth.role !== "lawyer" && auth.role !== "admin") {
+        throw new Error("Only lawyers and admins can send notifications");
+      }
 
-    // Simulate sending notification
-    let messageId: string;
-    
-    switch (req.type) {
-      case "sms":
-        messageId = `sms_${Date.now()}`;
-        // Integrate with Twilio SMS API
-        break;
-      case "email":
-        messageId = `email_${Date.now()}`;
-        // Integrate with email service
-        break;
-      case "whatsapp":
-        messageId = `whatsapp_${Date.now()}`;
-        // Integrate with WhatsApp Business API
-        break;
-      default:
+      if (!req.recipientId || !req.message) {
+        throw new Error("Recipient ID and message are required");
+      }
+
+      if (!["sms", "email", "whatsapp"].includes(req.type)) {
         throw new Error("Invalid notification type");
-    }
+      }
 
-    return {
-      success: true,
-      messageId,
-    };
+      // Simulate sending notification
+      let messageId: string;
+      
+      switch (req.type) {
+        case "sms":
+          messageId = `sms_${Date.now()}`;
+          // In production, integrate with Twilio SMS API
+          console.log(`SMS sent to ${req.recipientId}: ${req.message}`);
+          break;
+        case "email":
+          messageId = `email_${Date.now()}`;
+          // In production, integrate with email service
+          console.log(`Email sent to ${req.recipientId}: ${req.message}`);
+          break;
+        case "whatsapp":
+          messageId = `whatsapp_${Date.now()}`;
+          // In production, integrate with WhatsApp Business API
+          console.log(`WhatsApp sent to ${req.recipientId}: ${req.message}`);
+          break;
+        default:
+          throw new Error("Invalid notification type");
+      }
+
+      return {
+        success: true,
+        messageId,
+      };
+    } catch (error) {
+      throw new Error(error instanceof Error ? error.message : "Failed to send notification");
+    }
   }
 );

@@ -17,31 +17,37 @@ export interface AdminStats {
 export const getDashboardStats = api<void, AdminStats>(
   { auth: true, expose: true, method: "GET", path: "/admin/dashboard" },
   async () => {
-    const auth = getAuthData()!;
-    
-    if (auth.role !== "admin") {
-      throw new Error("Only admins can access dashboard stats");
+    try {
+      const auth = getAuthData()!;
+      
+      if (auth.role !== "admin") {
+        throw new Error("Only admins can access dashboard stats");
+      }
+
+      const totalUsers = await db.queryRow`SELECT COUNT(*) as count FROM users WHERE role = 'user'`;
+      const totalLawyers = await db.queryRow`SELECT COUNT(*) as count FROM users WHERE role = 'lawyer'`;
+      const activeSubscriptions = await db.queryRow`
+        SELECT COUNT(*) as count FROM users 
+        WHERE subscription_plan != 'free' AND (subscription_expires_at IS NULL OR subscription_expires_at > NOW())
+      `;
+      const documentsGenerated = await db.queryRow`SELECT COUNT(*) as count FROM document_generations`;
+
+      return {
+        totalUsers: totalUsers?.count || 0,
+        totalLawyers: totalLawyers?.count || 0,
+        activeSubscriptions: activeSubscriptions?.count || 0,
+        documentsGenerated: documentsGenerated?.count || 0,
+        topTemplates: [
+          { name: "Sale Deed", usage: 45 },
+          { name: "Rent Agreement", usage: 32 },
+          { name: "Power of Attorney", usage: 28 },
+          { name: "Affidavit", usage: 22 },
+          { name: "Notice", usage: 18 },
+        ],
+        revenueThisMonth: 125000,
+      };
+    } catch (error) {
+      throw new Error(error instanceof Error ? error.message : "Failed to fetch dashboard stats");
     }
-
-    const totalUsers = await db.queryRow`SELECT COUNT(*) as count FROM users WHERE role = 'user'`;
-    const totalLawyers = await db.queryRow`SELECT COUNT(*) as count FROM users WHERE role = 'lawyer'`;
-    const activeSubscriptions = await db.queryRow`
-      SELECT COUNT(*) as count FROM users 
-      WHERE subscription_plan != 'free' AND subscription_expires_at > NOW()
-    `;
-    const documentsGenerated = await db.queryRow`SELECT COUNT(*) as count FROM document_generations`;
-
-    return {
-      totalUsers: totalUsers?.count || 0,
-      totalLawyers: totalLawyers?.count || 0,
-      activeSubscriptions: activeSubscriptions?.count || 0,
-      documentsGenerated: documentsGenerated?.count || 0,
-      topTemplates: [
-        { name: "Sale Deed", usage: 45 },
-        { name: "Rent Agreement", usage: 32 },
-        { name: "Power of Attorney", usage: 28 },
-      ],
-      revenueThisMonth: 125000,
-    };
   }
 );
