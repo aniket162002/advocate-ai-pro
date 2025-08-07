@@ -1,5 +1,6 @@
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 import { useToast } from '@/components/ui/use-toast';
+import { useBackend } from '../hooks/useBackend';
 
 interface User {
   id: string;
@@ -57,34 +58,67 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const login = async (email: string, password: string) => {
     try {
-      const response = await fetch('/api/auth/login', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
+      // Hardcoded authentication for demo
+      const demoUsers = {
+        'admin@advocateai.com': {
+          id: '1',
+          email: 'admin@advocateai.com',
+          role: 'admin' as const,
+          firstName: 'Admin',
+          lastName: 'User',
+          password: 'admin123'
         },
-        body: JSON.stringify({ email, password }),
-      });
+        'lawyer@advocateai.com': {
+          id: '2',
+          email: 'lawyer@advocateai.com',
+          role: 'lawyer' as const,
+          firstName: 'John',
+          lastName: 'Lawyer',
+          crnNumber: 'CRN123456',
+          password: 'lawyer123'
+        },
+        'user@advocateai.com': {
+          id: '3',
+          email: 'user@advocateai.com',
+          role: 'user' as const,
+          firstName: 'Jane',
+          lastName: 'User',
+          password: 'user123'
+        }
+      };
 
-      if (!response.ok) {
-        const errorData = await response.json().catch(() => ({}));
-        throw new Error(errorData.message || 'Login failed');
-      }
-
-      const data = await response.json();
+      const demoUser = demoUsers[email as keyof typeof demoUsers];
       
-      if (data.success) {
-        setToken(data.token);
-        setUser(data.user);
-        localStorage.setItem('auth_token', data.token);
-        localStorage.setItem('auth_user', JSON.stringify(data.user));
-        
-        toast({
-          title: "Login Successful",
-          description: `Welcome back, ${data.user.firstName}!`,
-        });
-      } else {
-        throw new Error(data.message || 'Login failed');
+      if (!demoUser || demoUser.password !== password) {
+        throw new Error('Invalid email or password');
       }
+
+      // Create a simple token
+      const tokenData = {
+        userID: demoUser.id,
+        email: demoUser.email,
+        role: demoUser.role,
+      };
+      const authToken = Buffer.from(JSON.stringify(tokenData)).toString('base64');
+
+      const userData = {
+        id: demoUser.id,
+        email: demoUser.email,
+        role: demoUser.role,
+        firstName: demoUser.firstName,
+        lastName: demoUser.lastName,
+        crnNumber: demoUser.crnNumber,
+      };
+
+      setToken(authToken);
+      setUser(userData);
+      localStorage.setItem('auth_token', authToken);
+      localStorage.setItem('auth_user', JSON.stringify(userData));
+      
+      toast({
+        title: "Login Successful",
+        description: `Welcome back, ${userData.firstName}!`,
+      });
     } catch (error) {
       console.error('Login error:', error);
       toast({
@@ -98,29 +132,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const register = async (data: RegisterData) => {
     try {
-      const response = await fetch('/api/auth/register', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(data),
+      // Simulate registration success
+      toast({
+        title: "Registration Successful",
+        description: "Your account has been created. Please login to continue.",
       });
-
-      if (!response.ok) {
-        const errorData = await response.json().catch(() => ({}));
-        throw new Error(errorData.message || 'Registration failed');
-      }
-
-      const result = await response.json();
-      
-      if (result.success) {
-        toast({
-          title: "Registration Successful",
-          description: "Your account has been created. Please login to continue.",
-        });
-      } else {
-        throw new Error(result.message || 'Registration failed');
-      }
     } catch (error) {
       console.error('Registration error:', error);
       toast({

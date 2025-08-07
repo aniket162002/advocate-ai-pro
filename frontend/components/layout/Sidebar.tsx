@@ -14,13 +14,13 @@ import { cn } from '@/lib/utils';
 import { useAuth } from '../../contexts/AuthContext';
 
 const navigation = [
-  { name: 'Dashboard', href: '/lawyer', icon: BarChart3, roles: ['lawyer', 'user'] },
-  { name: 'Admin Dashboard', href: '/admin', icon: Settings, roles: ['admin'] },
-  { name: 'Document Automation', href: '/documents', icon: FileText, roles: ['lawyer', 'admin'] },
-  { name: 'eCourt Integration', href: '/ecourt', icon: Gavel, roles: ['lawyer'] },
-  { name: 'Argument Genius', href: '/arguments', icon: Brain, roles: ['lawyer'] },
-  { name: 'Win Predictor', href: '/predictor', icon: TrendingUp, roles: ['lawyer'] },
-  { name: 'Productivity Tools', href: '/tools', icon: MessageSquare, roles: ['lawyer', 'admin'] },
+  { name: 'Dashboard', href: '/dashboard/lawyer', icon: BarChart3, roles: ['lawyer', 'user'] },
+  { name: 'Admin Dashboard', href: '/dashboard/admin', icon: Settings, roles: ['admin'] },
+  { name: 'Document Automation', href: '/dashboard/documents', icon: FileText, roles: ['lawyer', 'admin'] },
+  { name: 'eCourt Integration', href: '/dashboard/ecourt', icon: Gavel, roles: ['lawyer'] },
+  { name: 'Argument Genius', href: '/dashboard/arguments', icon: Brain, roles: ['lawyer'] },
+  { name: 'Win Predictor', href: '/dashboard/predictor', icon: TrendingUp, roles: ['lawyer'] },
+  { name: 'Productivity Tools', href: '/dashboard/tools', icon: MessageSquare, roles: ['lawyer', 'admin'] },
 ];
 
 export default function Sidebar() {
@@ -35,10 +35,10 @@ export default function Sidebar() {
   return (
     <div className="w-64 bg-white shadow-lg h-screen">
       <div className="p-6">
-        <div className="flex items-center">
+        <Link to="/" className="flex items-center">
           <Scale className="h-8 w-8 text-blue-600" />
           <span className="ml-2 text-xl font-bold text-gray-900">Advocate AI Pro</span>
-        </div>
+        </Link>
       </div>
       
       <nav className="mt-6">

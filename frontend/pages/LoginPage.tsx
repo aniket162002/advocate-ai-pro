@@ -1,11 +1,12 @@
 import React, { useState } from 'react';
+import { Link } from 'react-router-dom';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Scale, Brain, FileText, Gavel, Eye, EyeOff } from 'lucide-react';
+import { Scale, Brain, FileText, Gavel, Eye, EyeOff, ArrowLeft } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
 
 export default function LoginPage() {
@@ -88,6 +89,11 @@ export default function LoginPage() {
       <div className="w-full max-w-6xl grid grid-cols-1 lg:grid-cols-2 gap-8 items-center">
         {/* Left side - Branding */}
         <div className="text-center lg:text-left">
+          <Link to="/" className="inline-flex items-center text-blue-600 hover:text-blue-700 mb-6">
+            <ArrowLeft className="h-4 w-4 mr-2" />
+            Back to Home
+          </Link>
+          
           <div className="flex items-center justify-center lg:justify-start mb-6">
             <Scale className="h-12 w-12 text-blue-600 mr-3" />
             <h1 className="text-4xl font-bold text-gray-900">Advocate AI Pro</h1>

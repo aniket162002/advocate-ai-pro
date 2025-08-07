@@ -3,6 +3,7 @@ import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-d
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { Toaster } from '@/components/ui/toaster';
 import { AuthProvider, useAuth } from './contexts/AuthContext';
+import HomePage from './pages/HomePage';
 import LoginPage from './pages/LoginPage';
 import DashboardLayout from './components/layout/DashboardLayout';
 import AdminDashboard from './pages/admin/AdminDashboard';
@@ -53,31 +54,32 @@ function AppRoutes() {
   return (
     <Router>
       <Routes>
+        <Route path="/" element={<HomePage />} />
         <Route path="/login" element={
-          user ? <Navigate to={`/${user.role}`} replace /> : <LoginPage />
+          user ? <Navigate to={`/dashboard/${user.role}`} replace /> : <LoginPage />
         } />
         
-        <Route path="/" element={
+        <Route path="/dashboard/*" element={
           <ProtectedRoute>
             <DashboardLayout>
               <Routes>
-                <Route path="/admin" element={<AdminDashboard />} />
-                <Route path="/lawyer" element={<LawyerDashboard />} />
-                <Route path="/user" element={<UserDashboard />} />
-                <Route path="/documents" element={<DocumentAutomation />} />
-                <Route path="/ecourt" element={<ECourtIntegration />} />
-                <Route path="/arguments" element={<ArgumentGenius />} />
-                <Route path="/predictor" element={<WinPredictor />} />
-                <Route path="/tools" element={<ProductivityTools />} />
+                <Route path="admin" element={<AdminDashboard />} />
+                <Route path="lawyer" element={<LawyerDashboard />} />
+                <Route path="user" element={<UserDashboard />} />
+                <Route path="documents" element={<DocumentAutomation />} />
+                <Route path="ecourt" element={<ECourtIntegration />} />
+                <Route path="arguments" element={<ArgumentGenius />} />
+                <Route path="predictor" element={<WinPredictor />} />
+                <Route path="tools" element={<ProductivityTools />} />
                 <Route path="/" element={
-                  <Navigate to={`/${user?.role || 'user'}`} replace />
+                  <Navigate to={`/dashboard/${user?.role || 'user'}`} replace />
                 } />
               </Routes>
             </DashboardLayout>
           </ProtectedRoute>
         } />
         
-        <Route path="*" element={<Navigate to="/login" replace />} />
+        <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
     </Router>
   );
