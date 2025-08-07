@@ -16,7 +16,7 @@ export interface SimulatorResponse {
 
 // Simulates court arguments with AI judge feedback.
 export const simulateArgument = api<SimulatorRequest, SimulatorResponse>(
-  { auth: true, expose: true, method: "POST", path: "/argument-analysis/simulate" },
+  { auth: true, expose: true, method: "POST", path: "/argument-genius/simulate" },
   async (req) => {
     const auth = getAuthData()!;
     
